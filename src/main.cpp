@@ -140,14 +140,10 @@ int main() {
         // We can't easily check *if* data is available first.
 
         // Get all the sensor data and send on serial por
-        while (true) {
-            printSensorDataAsJson();
-            wait(500, msec);
-
-        }
 
 
 
+        printSensorDataAsJson();
 
         // *** The program WILL BLOCK HERE until you send a string + newline from Mac ***
         int result_str = scanf("%s", inputBuffer); // Read string and float from input
@@ -192,15 +188,21 @@ int main() {
                 }
 
             } else if (strcmp(inputBuffer, "GRABBAR_HEIGHT") == 0) {
-                
-
+                // Down: -200
+                // Up: 100
+                // Brain.Screen.print("Height %f", value);
+                ArmMotor.spinToPosition(value, degrees, false);
             } else if (strcmp(inputBuffer, "GRABBER_WIDTH") == 0) {
-
+                // Open: 0
+                // Close: 30
+                Brain.Screen.print("Width %f", value);
+                ClawMotor.spinToPosition(value, degrees, false);
             }
              // Clear buffer for next read attempt by reading until newline (risky, might block more)
              // while(getchar() != '\n' && getchar() != EOF);
 
         } else {
+
             // printf("scanf result: %d. No valid string input received or stream error.\n", result_str);
         }
         // --- End Part 2 ---
