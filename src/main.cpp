@@ -36,7 +36,7 @@ motor LeftDriveSmart = motor(PORT12, 1, false);
 motor RightDriveSmart = motor(PORT7, 1, true);
 
 // proximity sensors
-sonar Sonar = sonar(PORT1);
+distance DistanceSensor = distance(PORT1);
 
 void calibrateDrivetrain() {
   wait(200, msec);
@@ -53,50 +53,19 @@ void calibrateDrivetrain() {
   Brain.Screen.setCursor(1, 1);
 }
 
-// // define a task that will handle monitoring inputs from Controller
-// int rc_auto_loop_function_Controller() {
-//   // process the controller input every 20 milliseconds
-//   // update the motors based on the input values
-//   while(true) {
+// Helper function to safely get integer part of a float
+int getIntPart(float f) {
+    // Handle potential NaN or Inf values if necessary, though unlikely for sensors
+    if (isnan(f) || isinf(f)) return 0;
+    return (int)f;
+}
 
-//     const int MAX_SPEED = 50;
-
-//     // buttons
-//     // Three values, max, 0 and -max.
-//     //
-//     int control_l1  = (Controller.ButtonLUp.pressing() - Controller.ButtonLDown.pressing()) * MAX_SPEED;
-//     int control_r1  = (Controller.ButtonRUp.pressing() - Controller.ButtonRDown.pressing()) * MAX_SPEED;
-
-//     // calculate the drivetrain motor velocities from the controller joystick axies
-//     // left = AxisA
-//     // right = AxisD
-//     int drivetrainLeftSideSpeed = Controller.AxisA.position();
-//     int drivetrainRightSideSpeed = Controller.AxisD.position();
-
-//     // threshold the variable channels so the drive does not
-//     // move if the joystick axis does not return exactly to 0
-//     const int deadband = 15;
-//     if(abs(drivetrainLeftSideSpeed) < deadband) {
-//       drivetrainLeftSideSpeed = 0;
-//     }
-
-//     if(abs(drivetrainRightSideSpeed) < deadband) {
-//       drivetrainRightSideSpeed = 0;
-//     }
-
-//     // update motor velocities
-//     LeftDriveSmart.spin(forward, drivetrainLeftSideSpeed, percent);
-//     RightDriveSmart.spin(forward, drivetrainRightSideSpeed, percent);
-
-//     // Claw and Arm motors
-//     ClawMotor.spin(forward, control_l1, percent);
-//     ArmMotor.spin(forward, control_r1, percent);
-
-//     // wait before repeating the process
-//     wait(25, msec);
-//   }
-//   return 0;
-// }
+// Helper function to safely get fractional part * scale (e.g., scale=100 for 2 decimal places)
+int getFracPart(float f, int scale) {
+    if (isnan(f) || isinf(f)) return 0;
+    // Use fabsf for float absolute value
+    return (int)fabsf((f - getIntPart(f)) * (float)scale);
+}
 
 int main() {
     char inputBuffer[50]; // Buffer for received string
@@ -105,11 +74,11 @@ int main() {
     float value = 0; // Variable to hold the float value from scanf
 
     Brain.Screen.setFont(monoM);
-    Brain.Screen.print("Polling Example (scanf blocks)");
+    // Brain.Screen.print("Polling Example (scanf blocks)");
     Brain.Screen.newLine();
-    printf("Polling Example (scanf still blocks)\n");
-    printf("-------------------------------------\n");
-    printf("Send 'forward' or 'stop' from Mac (with newline)\n");
+    // printf("Polling Example (scanf still blocks)\n");
+    // printf("-------------------------------------\n");
+    // printf("Send 'forward' or 'stop' from Mac (with newline)\n");
 
     while (true) {
         // --- Part 1: Non-Blocking Robot Tasks ---
@@ -117,15 +86,14 @@ int main() {
         // Example: Read sensors, apply basic motor logic, update screen counter.
         loopCounter++;
         Brain.Screen.setCursor(3, 1); // Row 3, Col 1
-        Brain.Screen.print("Loop Count: %d", loopCounter);
-        Brain.Screen.clearLine(3); // Clear rest of the line
+        // Brain.Screen.clearLine(3); // Clear rest of the line
 
         // Example: Maybe check a bumper sensor
         // if (BumperA.pressing()) {
         //     // React to bumper press
         // }
 
-        printf("Loop %d - About to check for input...\n", loopCounter);
+        // printf("Loop %d - About to check for input...\n", loopCounter);
 
         // --- End Part 1 ---
 
@@ -135,12 +103,34 @@ int main() {
         // It's NOT true polling. We are just calling the blocking function.
         // We can't easily check *if* data is available first.
 
+        // Get all the sensor data and send on serial por
+        while (true) {
+            double dist_mm = DistanceSensor.objectDistance(mm);
+            bool dist_found = DistanceSensor.isObjectDetected();
+            if (dist_found) {
+                Brain.Screen.setCursor(2, 1);
+                Brain.Screen.print("Distance: %f mm", dist_mm);
+
+                int val_int_part = (int)dist_mm;
+                int val_frac_part = (int)fabsf((dist_mm - val_int_part) * 100.0f);
+                printf("{distance: %d.%02d mm\n, ", val_int_part, val_frac_part);
+            } else {
+                Brain.Screen.setCursor(2, 1);
+                Brain.Screen.print("No object detected");
+            }
+
+            wait(500, msec);
+
+        }
+
+
+
+
         // *** The program WILL BLOCK HERE until you send a string + newline from Mac ***
         int result_str = scanf("%s", inputBuffer); // Read string and float from input
 
 
-        // splintn on ":"
-
+        // Split on ":"
         char *command = strtok(inputBuffer, ":");
         char *param = strtok(NULL, ":");
 
@@ -148,10 +138,7 @@ int main() {
 
         if (result_str == 1) {
             // Input was received and successfully read as a string
-            printf("--> Received string: '%s'\n", inputBuffer);
-            Brain.Screen.setCursor(4, 1);
-            Brain.Screen.print("Rx: %s", inputBuffer);
-            Brain.Screen.clearLine(4);
+            // printf("--> Received string: '%s'\n", inputBuffer);
             LeftDriveSmart.stop();
             RightDriveSmart.stop();
             LeftDriveSmart.setPosition(0, degrees);
@@ -182,6 +169,7 @@ int main() {
                 }
 
             } else if (strcmp(inputBuffer, "GRABBAR_HEIGHT") == 0) {
+                
 
             } else if (strcmp(inputBuffer, "GRABBER_WIDTH") == 0) {
 
@@ -190,13 +178,13 @@ int main() {
              // while(getchar() != '\n' && getchar() != EOF);
 
         } else {
-            printf("scanf result: %d. No valid string input received or stream error.\n", result_str);
+            // printf("scanf result: %d. No valid string input received or stream error.\n", result_str);
         }
         // --- End Part 2 ---
 
 
         // --- Part 3: Other tasks (only run AFTER scanf completes/returns) ---
-        printf("...Finished input check for loop %d.\n", loopCounter);
+        // printf("...Finished input check for loop %d.\n", loopCounter);
 
 
         // --- Loop Delay ---
