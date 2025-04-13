@@ -91,26 +91,16 @@ void printSensorDataAsJson() {
     int gyro_heading_frac = getFracPart(gyro_heading_float, 10);
 
     // --- 3. Print JSON Object ---
-    printf("{\n"); // Start JSON object
-
-    // Distance Sensor Data
-    printf("  \"object_detected\": %s,\n", dist_found ? "true" : "false");
-    if (dist_found) {
-         printf("  \"distance_mm_int\": %d,\n", dist_mm_int);
-         printf("  \"distance_mm_frac\": %02d,\n", dist_mm_frac); // Pad with zero if needed
-    } else {
-         printf("  \"distance_mm_int\": null,\n"); // Use null for no object
-         printf("  \"distance_mm_frac\": null,\n");
-    }
-
-    // Bumper Data
-    printf("  \"bumper_a_pressed\": %s,\n", bumper_pressed ? "true" : "false");
-
-    // Gyro Data
-    printf("  \"gyro_heading_deg_int\": %d,\n", gyro_heading_int);
-    printf("  \"gyro_heading_deg_frac\": %d,\n", gyro_heading_frac);
-
-    printf("}\n"); // End JSON object
+    printf("{"); 
+    printf("\"object_detected\": %s, ", dist_found ? "true" : "false"); 
+    if (dist_found) { 
+        printf("\"distance\": %d,\".\"%02d,", dist_mm_int, dist_mm_frac); 
+    } else { 
+        printf("\"distance\": null, "); 
+    } 
+    printf("\"bumper_pressed\": %s, ", bumper_pressed ? "true" : "false"); 
+    printf("\"heading\": %d.%d", gyro_heading_int, gyro_heading_frac); 
+    printf("}\n");
 }
 
 int main() {
