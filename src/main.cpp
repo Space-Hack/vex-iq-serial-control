@@ -1,23 +1,24 @@
 /*----------------------------------------------------------------------------------------*/
 /*                                                                                        */      
-/*    Project:          IQ2 Clawbot Project                                               */
+/*    Project:          VEX IQ2 Serial Control Clawbot                                    */
 /*    Module:           main.cpp                                                          */
 /*    Author:           VEX                                                               */
-/*    Created:          Fri Aug 05 2022                                                   */
-/*    Description:      This is an IQ2 python Clawbot project                             */
+/*    Created:          Sat Apr 12 2025                                                   */
+/*    Description:      Serial control implementation for VEX IQ2 Clawbot                 */
+/*                      Features motor control and sensor data feedback via serial        */
 /*                                                                                        */      
-/*    Configuration:    Clawbot Template (Individual Motors + Controller)                 */
-/*                      Controller                                                        */
-/*                      Left Motor in Port 1                                              */
-/*                      Right Motor in Port 6                                             */
-/*                      Claw Motor in Port 4                                              */
-/*                      Arm Motor in Port 10                                              */
+/*    Configuration:    Clawbot with Individual Motors                                    */
+/*                      Left Motor: Port 12                                               */
+/*                      Right Motor: Port 7                                               */
+/*                      Claw Motor: Port 9                                                */
+/*                      Arm Motor: Port 4                                                 */
+/*                      Distance Sensor: Port 1                                           */
+/*                      Bumper: Port 11                                                   */
+/*                      Inertial Sensor: Built-in                                         */
 /*                                                                                        */      
 /*----------------------------------------------------------------------------------------*/
 
 // Include the IQ Library
-// #include <iostream>
-// #include <string>
 #include "vex.h"
 
 
